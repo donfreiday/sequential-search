@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/07/17 15:07:24
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/07/17 22:38:23
 assignment5.asm						     Page 1 - 1
 
 
@@ -33,11 +33,16 @@ assignment5.asm						     Page 1 - 1
 				ExitProcess proto,dwExitCode:dword
 
  00000000			.data
- 00000000 00000001		array SDWORD 1,2,3,4
-	   00000002
+ 00000000 00000002		array SDWORD 2,3,-10,0,0FFh,-20,0,50,42
 	   00000003
-	   00000004
- 00000010 50 6C 65 61 73	prompt BYTE "Please enter an dword value to search for: ",0
+	   FFFFFFF6
+	   00000000
+	   000000FF
+	   FFFFFFEC
+	   00000000
+	   00000032
+	   0000002A
+ 00000024 50 6C 65 61 73	prompt BYTE "Please enter an dword value to search for: ",0
 	   65 20 65 6E 74
 	   65 72 20 61 6E
 	   20 64 77 6F 72
@@ -46,43 +51,40 @@ assignment5.asm						     Page 1 - 1
 	   20 73 65 61 72
 	   63 68 20 66 6F
 	   72 3A 20 00
- 0000003C 56 61 6C 75 65	valueNotFound BYTE "Value was not found.",0
+ 00000050 56 61 6C 75 65	valNotFound BYTE "Value was not found.",0
 	   20 77 61 73 20
 	   6E 6F 74 20 66
 	   6F 75 6E 64 2E
 	   00
- 00000051 54 68 65 20 76	valueFound BYTE "The value was found at index ",0
-	   61 6C 75 65 20
-	   77 61 73 20 66
-	   6F 75 6E 64 20
-	   61 74 20 69 6E
-	   64 65 78 20 00
+ 00000065 56 61 6C 75 65	valFound BYTE "Value found at index ",0
+	   20 66 6F 75 6E
+	   64 20 61 74 20
+	   69 6E 64 65 78
+	   20 00
 
  00000000			.code
  00000000			main proc
-					; Setup parameters for Search and PrintArray procedures
- 00000000  BE 00000000 R		mov esi,offset array ; search expects esi to contain the address of the array
- 00000005  B9 00000004			mov ecx,lengthof array ; search expects ecx to contain the number of elements in the array
+					; Set up parameters for Search and PrintArray procedures
+ 00000000  BE 00000000 R		mov esi,offset array ; Procedures expect esi to contain the address of the array
+ 00000005  B9 00000009			mov ecx,lengthof array ; Procedures expect ecx to contain the number of elements in the array
 					
-					; Print the array
- 0000000A  E8 00000072			call PrintArray
+ 0000000A  E8 00000065			call PrintArray
 
 					; Prompt the user to input a value to search for
- 0000000F  BA 00000010 R		mov edx,offset prompt
+ 0000000F  BA 00000024 R		mov edx,offset prompt
  00000014  E8 00000000 E		call WriteString
  00000019  E8 00000000 E		call ReadInt
 
-					
-					
  0000001E  E8 00000035			call Search
+
  00000023  75 13			jnz notfound ; Print message if value is not found, otherwise print index at which it was found
- 00000025  BA 00000051 R		mov edx,offset valueFound
+ 00000025  BA 00000065 R		mov edx,offset valFound
  0000002A  E8 00000000 E		call WriteString
- 0000002F  8B C1			mov eax,ecx
+ 0000002F  8B C1			mov eax,ecx ; Index of found value should be in ecx; move to eax for WriteInt procedure
  00000031  E8 00000000 E		call WriteInt
  00000036  EB 0A			jmp done
  00000038			notfound:
- 00000038  BA 0000003C R		mov edx,offset valueNotFound
+ 00000038  BA 00000050 R		mov edx,offset valNotFound
  0000003D  E8 00000000 E		call WriteString
  00000042			done:
  00000042  E8 00000000 E		call CrLf
@@ -95,80 +97,82 @@ assignment5.asm						     Page 1 - 1
  00000058			main endp
 
 
-				; search:  procedure to carry out a sequential search on a double-word array.
-				;
+				; Search:  procedure to carry out a sequential search on a double-word array.
 				; Expects:
-				; ESI – The base address of the array to be search.
-				; EAX – The target value for the search.
-				; ECX – The length of the array.
-				;
+				;	ESI – The base address of the array to be search.
+				;	EAX – The target value for the search.
+				;	ECX – The length of the array.
 				; Returns:
-				; EDI – The address of the array element in which the target value was found. If the target value
-				; was not found, return the address of the double-word that immediately follows the last element
-				; of the array.
-				; ECX – The position (array-based index) in which the target value was found. If the target value
-				; was not found, return the original length of the array that was given.
-				; 
-				; In addition, if the target was found, the procedure should set the Zero Flag. If not found, the Zero Flag
-				; should be clear.
+				;	EDI – The address of the array element in which the target value was found. If the target value
+				;		was not found, return the address of the double-word that immediately follows the last element
+				;		of the array.
+				;	ECX – The position (array-based index) in which the target value was found. If the target value
+				;		was not found, return the original length of the array that was given.
+				;	ZF - If the target was found, Zero Flag will be set. If not found, the Zero Flag will be clear.
  00000058			Search proc
+					; Preserve registers
  00000058  50				push eax
  00000059  56				push esi
  0000005A  51				push ecx
- 0000005B				L1:
- 0000005B  3B 06				cmp eax,[esi]
- 0000005D  74 10				je found
- 0000005F  83 C6 04				add esi,type array
- 00000062  E2 F7				loop L1
 
-					; Not found, clear zero flag and return length of array in ecx
- 00000064  B8 00000001			mov eax,1
- 00000069  83 F8 00			cmp eax,0
- 0000006C  59				pop ecx ; return the original length of the array that was given in ecx
- 0000006D  EB 0F			jmp preserve 
-
-					; Found, return address in edi, index in ecx, and set the zero flag
- 0000006F			found:
- 0000006F  8B FE			mov edi,esi ; Address of found value in edi
-
- 00000071  58				pop eax ; Pop size of array into eax
- 00000072  2B C1			sub eax,ecx ; Calculate index of found value
- 00000074  8B C8			mov ecx,eax ; Index of found value in ecx
+ 0000005B			L1:
+					; Loop through array, checking each index position for desired value
+ 0000005B  3B 06			cmp eax,[esi] ; Compare target value to value at current address in array
+ 0000005D  74 09			je found ; If value is found, handle it
+ 0000005F  83 C6 04			add esi,type array ; Increment address in esi by the size of one array element
+ 00000062  E2 F7			loop L1
 					
-					; Set zero flag
- 00000076  B8 00000000			mov eax,0
- 0000007B  83 F8 00			cmp eax,0
+ 00000064			notfound:
+					; Clear ZF, return length of array in ecx. Label is for clarity, not neccessary.
+ 00000064  41				inc ecx ; Clear the zero flag, ecx was just used as counter for the loop instruction and should be >= 0
+ 00000065  59				pop ecx ; Return the length of the array that was given initially in ecx
+ 00000066  EB 09			jmp preserve 
 					
-					; Preserve registers
- 0000007E			preserve:	
- 0000007E  5E				pop esi
- 0000007F  58				pop eax
- 00000080  C3				ret
- 00000081			Search endp
-
-				; Takes offset of array in esi, length of array in ecx
- 00000081			PrintArray proc
- 00000081  50				push eax
- 00000082  56				push esi
- 00000083  51				push ecx
- 00000084			L1:
- 00000084  B8 00000020			mov eax,' '
- 00000089  E8 00000000 E		call WriteChar
- 0000008E  8B 06			mov eax,[esi]
- 00000090  E8 00000000 E		call WriteInt
- 00000095  83 C6 04			add esi,type array
- 00000098  E2 EA			loop L1
 					
- 0000009A  E8 00000000 E		call CrLf
+ 00000068			found: 
+					; Return address of found value in edi, index in ecx, and set ZF
+ 00000068  8B FE			mov edi,esi ; Move address of found value to edi
+ 0000006A  58				pop eax ; Pop size of array into eax
+ 0000006B  2B C1			sub eax,ecx ; Calculate index of found value
+ 0000006D  8B C8			mov ecx,eax ; Move index of found value into ecx
+ 0000006F  33 C0			xor eax,eax ; Set zero flag
 
- 0000009F  59				pop ecx
- 000000A0  5E				pop esi
- 000000A1  58				pop eax
- 000000A2  C3				ret
- 000000A3			PrintArray endp
+ 00000071			preserve: ; Preserve registers
+ 00000071  5E				pop esi
+ 00000072  58				pop eax
+
+ 00000073  C3				ret
+ 00000074			Search endp
+
+
+				; PrintArray: Prints an array of integers
+				; Expects:
+				;	ESI – The base address of the array
+				;	ECX – The length of the array
+				; Returns:
+				;	Nothing
+ 00000074			PrintArray proc
+ 00000074  50				push eax
+ 00000075  56				push esi
+ 00000076  51				push ecx
+ 00000077			L1:
+ 00000077  B8 00000020			mov eax,' '
+ 0000007C  E8 00000000 E		call WriteChar
+ 00000081  8B 06			mov eax,[esi]
+ 00000083  E8 00000000 E		call WriteInt
+ 00000088  83 C6 04			add esi,type array
+ 0000008B  E2 EA			loop L1
+					
+ 0000008D  E8 00000000 E		call CrLf
+
+ 00000092  59				pop ecx
+ 00000093  5E				pop esi
+ 00000094  58				pop eax
+ 00000095  C3				ret
+ 00000096			PrintArray endp
 
 				end main
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/07/17 15:07:24
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/07/17 22:38:23
 assignment5.asm						     Symbols 2 - 1
 
 
@@ -262,8 +266,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000006F Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000000A3 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 0000007B Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000096 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -318,8 +322,8 @@ OpenInputFile  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ParseDecimal32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ParseInteger32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 PeekConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-PrintArray . . . . . . . . . . .	P Near	 00000081 _TEXT	Length= 00000022 Public STDCALL
-  L1 . . . . . . . . . . . . . .	L Near	 00000084 _TEXT	
+PrintArray . . . . . . . . . . .	P Near	 00000074 _TEXT	Length= 00000022 Public STDCALL
+  L1 . . . . . . . . . . . . . .	L Near	 00000077 _TEXT	
 Random32 . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 RandomRange  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Randomize  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -335,10 +339,11 @@ ReadInt  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ReadKeyFlush . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadKey  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadString . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-Search . . . . . . . . . . . . .	P Near	 00000058 _TEXT	Length= 00000029 Public STDCALL
+Search . . . . . . . . . . . . .	P Near	 00000058 _TEXT	Length= 0000001C Public STDCALL
   L1 . . . . . . . . . . . . . .	L Near	 0000005B _TEXT	
-  found  . . . . . . . . . . . .	L Near	 0000006F _TEXT	
-  preserve . . . . . . . . . . .	L Near	 0000007E _TEXT	
+  notfound . . . . . . . . . . .	L Near	 00000064 _TEXT	
+  found  . . . . . . . . . . . .	L Near	 00000068 _TEXT	
+  preserve . . . . . . . . . . .	L Near	 00000071 _TEXT	
 SetConsoleCursorInfo . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetConsoleCursorPosition . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetConsoleMode . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -612,10 +617,10 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-prompt . . . . . . . . . . . . .	Byte	 00000010 _DATA	
+prompt . . . . . . . . . . . . .	Byte	 00000024 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-valueFound . . . . . . . . . . .	Byte	 00000051 _DATA	
-valueNotFound  . . . . . . . . .	Byte	 0000003C _DATA	
+valFound . . . . . . . . . . . .	Byte	 00000065 _DATA	
+valNotFound  . . . . . . . . . .	Byte	 00000050 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
