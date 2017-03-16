@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/09/17 10:15:17
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/09/17 11:08:12
 assignment5.asm						     Page 1 - 1
 
 
@@ -30,7 +30,7 @@ assignment5.asm						     Page 1 - 1
 				ExitProcess proto,dwExitCode:dword
 
  00000000			.data
- 00000000 00000002			array SDWORD 2,3,-10,0,0FFh,-20,0,50,42
+ 00000000 00000002		array SDWORD 2,3,-10,0,0FFh,-20,0,50,42
 	   00000003
 	   FFFFFFF6
 	   00000000
@@ -39,7 +39,7 @@ assignment5.asm						     Page 1 - 1
 	   00000000
 	   00000032
 	   0000002A
- 00000024 50 6C 65 61 73		prompt BYTE "Please enter an dword value to search for: ",0
+ 00000024 50 6C 65 61 73	prompt BYTE "Please enter an dword value to search for: ",0
 	   65 20 65 6E 74
 	   65 72 20 61 6E
 	   20 64 77 6F 72
@@ -48,125 +48,125 @@ assignment5.asm						     Page 1 - 1
 	   20 73 65 61 72
 	   63 68 20 66 6F
 	   72 3A 20 00
- 00000050 56 61 6C 75 65		valNotFound BYTE "Value was not found.",0
+ 00000050 56 61 6C 75 65	valNotFound BYTE "Value was not found.",0
 	   20 77 61 73 20
 	   6E 6F 74 20 66
 	   6F 75 6E 64 2E
 	   00
- 00000065 56 61 6C 75 65		valFound BYTE "Value found at index ",0
+ 00000065 56 61 6C 75 65	valFound BYTE "Value found at index ",0
 	   20 66 6F 75 6E
 	   64 20 61 74 20
 	   69 6E 64 65 78
 	   20 00
 
  00000000			.code
- 00000000				main proc
-						; Set up parameters for Search and PrintArray procedures
- 00000000  BE 00000000 R			mov esi,offset array ; Procedures expect esi to contain the address of the array
- 00000005  B9 00000009				mov ecx,lengthof array ; Procedures expect ecx to contain the number of elements in the array
+ 00000000			main proc
+					; Set up parameters for Search and PrintArray procedures
+ 00000000  BE 00000000 R		mov esi,offset array ; Procedures expect esi to contain the address of the array
+ 00000005  B9 00000009			mov ecx,lengthof array ; Procedures expect ecx to contain the number of elements in the array
 					
- 0000000A  E8 00000066				call PrintArray
+ 0000000A  E8 00000066			call PrintArray
 
-						; Prompt the user to input a value to search for
- 0000000F  BA 00000024 R			mov edx,offset prompt
- 00000014  E8 00000000 E			call WriteString
- 00000019  E8 00000000 E			call ReadInt
+					; Prompt the user to input a value to search for
+ 0000000F  BA 00000024 R		mov edx,offset prompt
+ 00000014  E8 00000000 E		call WriteString
+ 00000019  E8 00000000 E		call ReadInt
 
- 0000001E  E8 00000035				call Search
+ 0000001E  E8 00000035			call Search
 
-						; Print message if value is not found, otherwise print index at which it was found
- 00000023  75 13				jnz notfound 
- 00000025  BA 00000065 R			mov edx,offset valFound
- 0000002A  E8 00000000 E			call WriteString
- 0000002F  8B C1				mov eax,ecx ; Index of found value should be in ecx; move to eax for WriteInt procedure
- 00000031  E8 00000000 E			call WriteInt
- 00000036  EB 0A				jmp quit
- 00000038				notfound:
- 00000038  BA 00000050 R			mov edx,offset valNotFound
- 0000003D  E8 00000000 E			call WriteString
- 00000042				quit:
- 00000042  E8 00000000 E			call CrLf
- 00000047  E8 00000000 E			call CrLf
- 0000004C  E8 00000000 E			call WaitMsg
-						invoke ExitProcess,0 
+					; Print message if value is not found, otherwise print index at which it was found
+ 00000023  75 13			jnz notfound 
+ 00000025  BA 00000065 R		mov edx,offset valFound
+ 0000002A  E8 00000000 E		call WriteString
+ 0000002F  8B C1			mov eax,ecx ; Index of found value should be in ecx; move to eax for WriteInt procedure
+ 00000031  E8 00000000 E		call WriteInt
+ 00000036  EB 0A			jmp quit
+ 00000038			notfound:
+ 00000038  BA 00000050 R		mov edx,offset valNotFound
+ 0000003D  E8 00000000 E		call WriteString
+ 00000042			quit:
+ 00000042  E8 00000000 E		call CrLf
+ 00000047  E8 00000000 E		call CrLf
+ 0000004C  E8 00000000 E		call WaitMsg
+					invoke ExitProcess,0 
  00000051  6A 00	   *	    push   +000000000h
  00000053  E8 00000000 E   *	    call   ExitProcess
- 00000058				main endp
+ 00000058			main endp
 
-					;-----------------------------------------------------------------------------------------------------
-					; Search:  procedure to carry out a sequential search on a double-word array.
-					; Expects:
-					;	ESI – The base address of the array to be search.
-					;	EAX – The target value for the search.
-					;	ECX – The length of the array.
-					; Returns:
-					;	EDI – The address of the array element in which the target value was found. If the target value
-					;		was not found, return the address of the double-word that immediately follows the last element
-					;		of the array.
-					;	ECX – The position (array-based index) in which the target value was found. If the target value
-					;		was not found, return the original length of the array that was given.
-					;	ZF - If the target was found, Zero Flag will be set. If not found, the Zero Flag will be clear.
-					;-----------------------------------------------------------------------------------------------------
- 00000058				Search proc uses eax esi
+				;-----------------------------------------------------------------------------------------------------
+				; Search:  procedure to carry out a sequential search on a double-word array.
+				; Expects:
+				;	ESI – The base address of the array to be search.
+				;	EAX – The target value for the search.
+				;	ECX – The length of the array.
+				; Returns:
+				;	EDI – The address of the array element in which the target value was found. If the target value
+				;		was not found, return the address of the double-word that immediately follows the last element
+				;		of the array.
+				;	ECX – The position (array-based index) in which the target value was found. If the target value
+				;		was not found, return the original length of the array that was given.
+				;	ZF - If the target was found, Zero Flag will be set. If not found, the Zero Flag will be clear.
+				;-----------------------------------------------------------------------------------------------------
+ 00000058			Search proc uses eax esi
  00000058  50		   *	    push   eax
  00000059  56		   *	    push   esi
- 0000005A  51					push ecx ; Preserve length of the array
- 0000005B				L1:
-						; Loop through array, checking each index position for desired value
- 0000005B  3B 06				cmp eax,[esi] ; Compare target value to value at current address in array
- 0000005D  74 0A				je found ; If value is found, handle it
- 0000005F  83 C6 04				add esi,type array ; Increment address in esi by the size of one array element
- 00000062  E2 F7				loop L1	
- 00000064				notfound:
-						; Clear ZF, return length of array in ecx. Label is for clarity, not neccessary.
- 00000064  41					inc ecx ; Clear the zero flag, ecx was just used as counter for the loop instruction and should be >= 0
- 00000065  59					pop ecx ; Return the length of the array that was given initially in ecx
-						ret ; 'Uses' directive will cause the assembler to insert pop eax and pop esi before ret, preserving their values
+ 0000005A  51				push ecx ; Preserve length of the array
+ 0000005B			L1:
+					; Loop through array, checking each index position for desired value
+ 0000005B  3B 06			cmp eax,[esi] ; Compare target value to value at current address in array
+ 0000005D  74 0A			je found ; If value is found, handle it
+ 0000005F  83 C6 04			add esi,type array ; Increment address in esi by the size of one array element
+ 00000062  E2 F7			loop L1	
+ 00000064			notfound:
+					; Clear ZF, return length of array in ecx. Label is for clarity, not neccessary.
+ 00000064  41				inc ecx ; Clear the zero flag, ecx was just used as counter for the loop instruction and should be >= 0
+ 00000065  59				pop ecx ; Return the length of the array that was given initially in ecx
+					ret ; 'Uses' directive will cause the assembler to insert pop eax and pop esi before ret, preserving their values
  00000066  5E		   *	    pop    esi
  00000067  58		   *	    pop    eax
  00000068  C3		   *	    ret    00000h
- 00000069				found: 
-						; Return address of found value in edi, index in ecx, and set ZF
- 00000069  8B FE				mov edi,esi ; Move address of found value to edi
- 0000006B  58					pop eax ; Pop size of array into eax
- 0000006C  2B C1				sub eax,ecx ; Calculate index of found value
- 0000006E  8B C8				mov ecx,eax ; Move index of found value into ecx
- 00000070  33 C0				xor eax,eax ; Set zero flag
-						ret ; 'Uses' directive will cause the assembler to insert pop eax and pop esi before ret, preserving their values
+ 00000069			found: 
+					; Return address of found value in edi, index in ecx, and set ZF
+ 00000069  8B FE			mov edi,esi ; Move address of found value to edi
+ 0000006B  58				pop eax ; Pop size of array into eax
+ 0000006C  2B C1			sub eax,ecx ; Calculate index of found value
+ 0000006E  8B C8			mov ecx,eax ; Move index of found value into ecx
+ 00000070  33 C0			xor eax,eax ; Set zero flag
+					ret ; 'Uses' directive will cause the assembler to insert pop eax and pop esi before ret, preserving their values
  00000072  5E		   *	    pop    esi
  00000073  58		   *	    pop    eax
  00000074  C3		   *	    ret    00000h
- 00000075				Search endp
+ 00000075			Search endp
 
-					;-----------------------------------------------------------------------------------------------------
-					; PrintArray: Prints an array of integers
-					; Expects:
-					;	ESI – The base address of the array
-					;	ECX – The length of the array
-					; Returns:
-					;	Nothing
-					;-----------------------------------------------------------------------------------------------------
- 00000075				PrintArray proc uses eax esi ecx
+				;-----------------------------------------------------------------------------------------------------
+				; PrintArray: Prints an array of integers
+				; Expects:
+				;	ESI – The base address of the array
+				;	ECX – The length of the array
+				; Returns:
+				;	Nothing
+				;-----------------------------------------------------------------------------------------------------
+ 00000075			PrintArray proc uses eax esi ecx
  00000075  50		   *	    push   eax
  00000076  56		   *	    push   esi
  00000077  51		   *	    push   ecx
- 00000078				L1:
- 00000078  8B 06				mov eax,[esi] ; Move the value at address contained in esi to eax
- 0000007A  E8 00000000 E			call WriteInt ; Display the value in eax
- 0000007F  B8 00000020				mov eax,' ' ; Separate each value displayed with a ' ' character
- 00000084  E8 00000000 E			call WriteChar
- 00000089  83 C6 04				add esi,type array ; Point esi at the next array element's address
- 0000008C  E2 EA				loop L1
- 0000008E  E8 00000000 E			call CrLf
-						ret
+ 00000078			L1:
+ 00000078  8B 06			mov eax,[esi] ; Move the value at address contained in esi to eax
+ 0000007A  E8 00000000 E		call WriteInt ; Display the value in eax
+ 0000007F  B8 00000020			mov eax,' ' ; Separate each value displayed with a ' ' character
+ 00000084  E8 00000000 E		call WriteChar
+ 00000089  83 C6 04			add esi,type array ; Point esi at the next array element's address
+ 0000008C  E2 EA			loop L1
+ 0000008E  E8 00000000 E		call CrLf
+					ret
  00000093  59		   *	    pop    ecx
  00000094  5E		   *	    pop    esi
  00000095  58		   *	    pop    eax
  00000096  C3		   *	    ret    00000h
- 00000097				PrintArray endp
+ 00000097			PrintArray endp
 
-					end main
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/09/17 10:15:17
+				end main
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/09/17 11:08:12
 assignment5.asm						     Symbols 2 - 1
 
 
